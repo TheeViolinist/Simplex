@@ -977,6 +977,20 @@ void armazenaPrecoSombra(vector < double > &precosSombra, const vector < double 
 	}
 }
 
+
+void armazenaBaseInversa(vector < vector < double > > &coeficientesInversoBase, const vector < vector < double > > &coeficientesRestricoes, int quantiaRestricoes, int quantiaColunas)
+{
+	int indiceColuna = quantiaColunas - (1 + quantiaRestricoes); // Vamos iniciar no indice da coluna da nossa primeira variável do dual
+	vector < double > coeficientesInversoBaseTemporarios;
+
+	for(int i = 0; i < quantiaRestricoes; i++)
+	{
+		coeficientesInversoBaseTemporarios = {coeficientesRestricoes[i].begin() + indiceColuna, coeficientesRestricoes[i].end()};
+		coeficientesInversoBase.push_back(coeficientesInversoBaseTemporarios);
+	}
+}
+
+
 int main()
 {
 	bool ehMinimizacao; // Variavel que indica se eh ou não de minimização 
@@ -1058,7 +1072,8 @@ int main()
 
 	printaSolucaoFinal(indiceSolucaoFinal, coeficientesB, coeficientesRestricoes);
 	
-	vector < double > precosSombra;
+	cout << endl;	
+	vector < double > precosSombra; // Valores do preço sombra
 	
 	// CoeficientesB possui os valores de B, então seu .size() representa a quantia de restrições do problema
 	armazenaPrecoSombra(precosSombra, coeficientesDaFuncao, coeficientesB.size());
@@ -1066,5 +1081,21 @@ int main()
 	cout << "Precos Sombra: " << std::endl;
 	for(int i = 0; i < precosSombra.size(); i++){
 		cout << precosSombra[i] << " ";
+	}
+	cout << endl;
+	vector < vector < double >  > coeficientesInversoBase; // Coeficiencies que vamos utilizar para calcular o range do lado direiro;
+	
+	// CoeficientesB.size() indica a quantia de restrições
+	// CoeficientesDaFuncao.size() indica a quantia de coluna
+	armazenaBaseInversa(coeficientesInversoBase, coeficientesRestricoes, coeficientesB.size(), coeficientesDaFuncao.size());
+	
+	cout << "Valores do inverso da base" << std::endl;
+	for(int i = 0; i < coeficientesInversoBase.size(); i++)
+	{
+		for(int j = 0; j < coeficientesInversoBase[i].size(); j++)
+		{
+			cout << coeficientesInversoBase[i][j] << " ";
+		}
+		cout << endl;
 	}
 }

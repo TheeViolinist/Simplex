@@ -994,6 +994,50 @@ void armazenaBaseInversa(vector < vector < double > > &coeficientesInversoBase, 
 }
 
 
+
+void printaRangesLadoDireito(const vector < vector < double > > &limitantes, const vector < vector < int > > &limitantesRestricoes, const vector < double > &valoresIniciaisB)
+{
+	double menorValor = limitantes[0][0];
+	double maiorValor = limitantes[0][0];
+	int indiceColunaMaior = 0;
+	int indiceColunaMenor = 0;
+
+	for(int i = 0; i < limitantes.size(); i++)
+	{
+		for(int j = 0; j < limitantes[i].size(); j++)
+		{
+			if(limitantes[i][j] == INFINITY)
+			{
+				continue;
+			}
+
+			if(limitantes[i][j] < menorValor)
+			{
+				menorValor = limitantes[i][j];
+				indiceColunaMenor = j;
+			}
+
+			if(limitantes[i][j] > maiorValor)
+			{
+				maiorValor = limitantes[i][j];
+				indiceColunaMaior = j;
+			}
+		}
+
+		cout << "Primeira Linha ";
+		cout << "Allowable increase " << fixed << setprecision(2) << valoresIniciaisB[i] - menorValor << "|";
+		cout << "Allowable decrease " << fixed << setprecision(2) << maiorValor - valoresIniciaisB[i] << std::endl;
+		// Mudar dps
+		menorValor = 0;
+		maiorValor = 0;
+		
+	}
+}
+
+
+
+
+
 int main()
 {
 	bool ehMinimizacao; // Variavel que indica se eh ou não de minimização 
@@ -1022,13 +1066,13 @@ int main()
 	// Valores de cada valor da coluna B
 	vector < double > coeficientesB;
 
-
 	// Restricoes de cada variavel
 	vector < int > restricoesVariaveis;
 
 	// Recebe todas as variáveis como entrada
 	recebeInformacoes(ehMinimizacao, coeficientesDaFuncao, coeficientesRestricoes, relacoesRestricoes, coeficientesB, restricoesVariaveis);
 	
+	vector < double > coeficientesBInicial= {coeficientesB.begin(), coeficientesB.end()}; // Copia os valores para utilizar na análise de sensi.
 
 	vector < double > coeficientesFuncaoDual; // Função objetivo do problema dual
 	vector < double > coeficientesBDual;    // coeficientes do subject do problema dual
@@ -1128,8 +1172,9 @@ int main()
 		{	
 			if(coeficientesInversoBase[i][linhaRequeridaRange] != 0)
 			{
+				// Já soma com o valor inicial de b que é o vetor dos valores das restricoes
+				limitante = ((-1 * coeficientesB[i]) / coeficientesInversoBase[i][linhaRequeridaRange] + coeficientesBInicial[linhaRequeridaRange]);
 				
-				limitante = (-1 * coeficientesB[i]) / coeficientesInversoBase[i][linhaRequeridaRange];
 			}
 			else
 			{
@@ -1159,5 +1204,17 @@ int main()
 		linhaRequeridaRange++;	
 	}
 	
-		
+	/*	
+	for(int i = 0; i < limitantes.size(); i++)
+	{
+		for(int j = 0; j < limitantes[i].size(); j++)
+		{
+			cout << limitantes[i][j] << " ";
+		}
+		cout << endl;
+	}	
+	cout << endl;
+	*/
+
+	printaRangesLadoDireito(limitantes, limitantesRestricoes, coeficientesBInicial);	
 }	

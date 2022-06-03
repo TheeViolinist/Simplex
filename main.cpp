@@ -7,6 +7,7 @@
 #include <cfloat> // DLB_MAX
 #include <iomanip>
 #include <string.h>
+#include <math.h>
 
 using namespace std;
 
@@ -958,7 +959,7 @@ void printaModelo(const vector < double > &coeficientesDaFuncao,  vector < vecto
 
 
 // Função responsável por armazenar em um vetor os precos sombra, que correspondem ao valor das variáveis de decisão
-// DO problema dual, que dado a quantia de restrições, exemplo 3 restrições no problema primal, serão as 3 ultimas variaveis
+// Do problema dual, que dado a quantia de restrições, exemplo 3 restrições no problema primal, serão as 3 ultimas variaveis
 // do vetor de valores da função objetivo 
 void armazenaPrecoSombra(vector < double > &precosSombra, const vector < double > &valoresObjetivo, int quantiaRestricoes)
 {
@@ -978,11 +979,13 @@ void armazenaPrecoSombra(vector < double > &precosSombra, const vector < double 
 }
 
 
+// Função responsável por armazenar a matriz inversa da base, para poder calcular os range dos valores de B 
 void armazenaBaseInversa(vector < vector < double > > &coeficientesInversoBase, const vector < vector < double > > &coeficientesRestricoes, int quantiaRestricoes, int quantiaColunas)
 {
 	int indiceColuna = quantiaColunas - (1 + quantiaRestricoes); // Vamos iniciar no indice da coluna da nossa primeira variável do dual
-	vector < double > coeficientesInversoBaseTemporarios;
-
+	vector < double > coeficientesInversoBaseTemporarios; // Vetor que armazena temporariamente os valores daquela linha
+	
+	// Então acessa a linha, copia os vallores a partir daquela da coluna do IndiceColuna até o fim da linha
 	for(int i = 0; i < quantiaRestricoes; i++)
 	{
 		coeficientesInversoBaseTemporarios = {coeficientesRestricoes[i].begin() + indiceColuna, coeficientesRestricoes[i].end()};
@@ -1072,8 +1075,9 @@ int main()
 
 	printaSolucaoFinal(indiceSolucaoFinal, coeficientesB, coeficientesRestricoes);
 	
-	cout << endl;	
-	vector < double > precosSombra; // Valores do preço sombra
+	cout << endl;
+
+	vector < double > precosSombra; // Valores do preço sombra, que são as variáveis do dual
 	
 	// CoeficientesB possui os valores de B, então seu .size() representa a quantia de restrições do problema
 	armazenaPrecoSombra(precosSombra, coeficientesDaFuncao, coeficientesB.size());
@@ -1090,6 +1094,7 @@ int main()
 	armazenaBaseInversa(coeficientesInversoBase, coeficientesRestricoes, coeficientesB.size(), coeficientesDaFuncao.size());
 	
 	cout << "Valores do inverso da base" << std::endl;
+	/*
 	for(int i = 0; i < coeficientesInversoBase.size(); i++)
 	{
 		for(int j = 0; j < coeficientesInversoBase[i].size(); j++)
@@ -1098,4 +1103,61 @@ int main()
 		}
 		cout << endl;
 	}
-}
+	*/ // Lembrar que coeficientesInversoBase.size() representa o numero de linhas da matriz
+	
+	// Para saber os range precisa-se do vetor b final e a matriz inversa de B 
+	
+	int linhaRequeridaRange = 0; // Variável que se refere a linha da restrição que estamos calculando o range de b
+	
+	vector < vector < double > > limitantes; // matriz dos limitantes de cada linha, cada indice refere-se a um vetor que são os limitantes daquela linha
+	vector < vector < int > > limitantesRestricoes; // Matriz de restricoes de cada linha, onde teremos um vetor que representa a relação de cada elemento sendo 1 -> <= e 2 >=
+																	
+	// Ou seja, enquanto essa linha for menor que a quantia de restrições, iremos repetir o loop
+	while(linhaRequeridaRange < coeficientesB.size())
+	{
+		// A linhaRequeridaRange representa a coluna da matriz inversa B que vamos multiplicar por certa icógnita e somar com a mesma linha
+		// no vetor b e fazer >= 0
+		
+		// Percorre-se as linhas, que é exatamente o tamanho da matriz e mantém fixo o valor da coluna que é o valor de linhaRequeridaRange
+		// Para saber qual valor ele deve ser >= ou <=, vamos dividir o valor da matriz inversa de B daquela linha pelo valor de b inverso final
+		// daquela mesma linha
+		double limitante;
+	       	vector < double> limitantesTemporarias;
+		vector < int > limitantesRestricoesTemporarias;		
+		for(int i  = 0; i < coeficientesInversoBase.size(); i++)
+		{	
+			if(coeficientesInversoBase[i][linhaRequeridaRange] != 0)
+			{
+				
+				limitante = (-1 * coeficientesB[i]) / coeficientesInversoBase[i][linhaRequeridaRange];
+			}
+			else
+			{
+				limitante = INFINITY; // Transforma o valor em infinito para ignorar
+			}
+			limitantesTemporarias.push_back(limitante);
+			
+			// Coloca 0 na restrição daquele valor, que vai nos indicar adiante para ignorar essa restrição
+			if(limitante == INFINITY)
+			{
+				limitantesRestricoesTemporarias.push_back(0);
+			}
+			
+			// Se o valor for menor do que zero, é porque vamos multiplicar aquela linha por -1, então mudamos a restrição original de >= para menor <=
+			if(coeficientesInversoBase[i][linhaRequeridaRange] < 0)
+			{
+				limitantesRestricoesTemporarias.push_back(1);
+			}
+			else
+			{
+				limitantesRestricoesTemporarias.push_back(2);
+			}
+		}
+		
+		limitantes.push_back(limitantesTemporarias); // Adiciona o vetor a limites
+		limitantesRestricoes.push_back(limitantesRestricoesTemporarias); // Adiciona o vetor a limitantesRestricoes
+		linhaRequeridaRange++;	
+	}
+	
+		
+}	

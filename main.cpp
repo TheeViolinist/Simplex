@@ -997,40 +997,81 @@ void armazenaBaseInversa(vector < vector < double > > &coeficientesInversoBase, 
 
 void printaRangesLadoDireito(const vector < vector < double > > &limitantes, const vector < vector < int > > &limitantesRestricoes, const vector < double > &valoresIniciaisB)
 {
-	double menorValor = limitantes[0][0];
-	double maiorValor = limitantes[0][0];
+	double menorValor;
+	double maiorValor;
 	int indiceColunaMaior = 0;
 	int indiceColunaMenor = 0;
-
+	bool achou;
+	bool temLimiteInferior = false;
+	bool temLimiteSuperior = false;
 	for(int i = 0; i < limitantes.size(); i++)
 	{
+
+		menorValor = limitantes[i][0];
+		maiorValor = limitantes[i][0];
+		achou = false;
+		temLimiteSuperior = false;
+		temLimiteInferior = false;
+
 		for(int j = 0; j < limitantes[i].size(); j++)
 		{
+
 			if(limitantes[i][j] == INFINITY)
 			{
 				continue;
 			}
-
-			if(limitantes[i][j] < menorValor)
+			
+			// A restrição daquela variável é de <=, ou seja, é um limitante superior
+			if(limitantesRestricoes[i][j] == 1)
 			{
-				menorValor = limitantes[i][j];
-				indiceColunaMenor = j;
+				if(limitantes[i][j] >= maiorValor)
+				{
+					temLimiteSuperior = true;
+					maiorValor = limitantes[i][j];
+					indiceColunaMaior = j;
+				}
 			}
+			// A restrição daquela variável é de >=, ou seja, é um limitante inferior
+			else
+			{	
+				// é necessário fazer isso, pois caso eu tenha um valor um limite inferior diferente de zero e depois tenha outro valor igual a zero, para
+				// nao entrar no outro if
+				if(achou && limitantes[i][j] == 0)
+				{
+					continue;
+				}
+				if(abs(limitantes[i][j]) <= menorValor)
+				{
+					achou = true;
+					temLimiteInferior = true;
+					menorValor = limitantes[i][j];
+					indiceColunaMenor = j;
 
-			if(limitantes[i][j] > maiorValor)
-			{
-				maiorValor = limitantes[i][j];
-				indiceColunaMaior = j;
+				}
 			}
 		}
-
-		cout << "Primeira Linha ";
-		cout << "Allowable increase " << fixed << setprecision(2) << valoresIniciaisB[i] - menorValor << "|";
-		cout << "Allowable decrease " << fixed << setprecision(2) << maiorValor - valoresIniciaisB[i] << std::endl;
-		// Mudar dps
-		menorValor = 0;
-		maiorValor = 0;
 		
+		cout << "linha " << i + 1 << " ";	
+		if(temLimiteInferior)
+		{
+			cout << "Allowable decrease " << fixed << setprecision(4) << valoresIniciaisB[i] - menorValor << " | ";
+		}
+		else
+		{
+			cout << "Allowable decrease 0  | ";
+		}
+
+		if(temLimiteSuperior)
+		{
+			cout << "Allowable increase " << fixed << setprecision(4) << maiorValor - valoresIniciaisB[i] << std::endl;
+		}
+		else
+		{
+			cout << "Allowable increase Infinity" << std::endl;
+		}
+		// Mudar dps
+		indiceColunaMaior = 0;
+		indiceColunaMenor = 0;	
 	}
 }
 
@@ -1137,7 +1178,6 @@ int main()
 	// CoeficientesDaFuncao.size() indica a quantia de coluna
 	armazenaBaseInversa(coeficientesInversoBase, coeficientesRestricoes, coeficientesB.size(), coeficientesDaFuncao.size());
 	
-	cout << "Valores do inverso da base" << std::endl;
 	/*
 	for(int i = 0; i < coeficientesInversoBase.size(); i++)
 	{
@@ -1173,7 +1213,7 @@ int main()
 			if(coeficientesInversoBase[i][linhaRequeridaRange] != 0)
 			{
 				// Já soma com o valor inicial de b que é o vetor dos valores das restricoes
-				limitante = ((-1 * coeficientesB[i]) / coeficientesInversoBase[i][linhaRequeridaRange] + coeficientesBInicial[linhaRequeridaRange]);
+				limitante = ((-1 * coeficientesB[i]) / coeficientesInversoBase[i][linhaRequeridaRange]) + coeficientesBInicial[linhaRequeridaRange];
 				
 			}
 			else
@@ -1204,7 +1244,6 @@ int main()
 		linhaRequeridaRange++;	
 	}
 	
-	/*	
 	for(int i = 0; i < limitantes.size(); i++)
 	{
 		for(int j = 0; j < limitantes[i].size(); j++)
@@ -1213,8 +1252,6 @@ int main()
 		}
 		cout << endl;
 	}	
-	cout << endl;
-	*/
-
+	
 	printaRangesLadoDireito(limitantes, limitantesRestricoes, coeficientesBInicial);	
 }	

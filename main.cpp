@@ -997,21 +997,22 @@ void armazenaBaseInversa(vector < vector < double > > &coeficientesInversoBase, 
 
 void printaRangesLadoDireito(const vector < vector < double > > &limitantes, const vector < vector < int > > &limitantesRestricoes, const vector < double > &valoresIniciaisB)
 {
-	double menorValor;
-	double maiorValor;
-	int indiceColunaMaior = 0;
-	int indiceColunaMenor = 0;
+	double limiteInferior;
+	double limiteSuperior;
 	bool achou;
 	bool temLimiteInferior = false;
 	bool temLimiteSuperior = false;
+	bool primeiraVariavelSuperior;
+	bool primeiraVariavelInferior;
+	
 	for(int i = 0; i < limitantes.size(); i++)
 	{
 
-		menorValor = limitantes[i][0];
-		maiorValor = limitantes[i][0];
 		achou = false;
 		temLimiteSuperior = false;
 		temLimiteInferior = false;
+		primeiraVariavelSuperior = false;
+		primeiraVariavelInferior = false;
 
 		for(int j = 0; j < limitantes[i].size(); j++)
 		{
@@ -1020,41 +1021,61 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 			{
 				continue;
 			}
-			
+
 			// A restrição daquela variável é de <=, ou seja, é um limitante superior
 			if(limitantesRestricoes[i][j] == 1)
 			{
-				if(limitantes[i][j] >= maiorValor)
-				{
-					temLimiteSuperior = true;
-					maiorValor = limitantes[i][j];
-					indiceColunaMaior = j;
+				if(!primeiraVariavelSuperior) {
+
+					limiteSuperior = limitantes[i][j];
+					primeiraVariavelSuperior = true;
 				}
+
+				else if(limitantes[i][j] <= limiteSuperior)
+				{
+					limiteSuperior = limitantes[i][j];
+				}
+
+
+				temLimiteSuperior = true;
 			}
 			// A restrição daquela variável é de >=, ou seja, é um limitante inferior
 			else
 			{	
+
+			
 				// é necessário fazer isso, pois caso eu tenha um valor um limite inferior diferente de zero e depois tenha outro valor igual a zero, para
 				// nao entrar no outro if
 				if(achou && limitantes[i][j] == 0)
 				{
 					continue;
 				}
-				if(abs(limitantes[i][j]) <= menorValor)
+
+				if(!primeiraVariavelInferior) {
+
+					limiteInferior = limitantes[i][j];
+					primeiraVariavelInferior = true;
+				}
+
+				else if(abs(limitantes[i][j]) <= limiteInferior)
 				{
-					achou = true;
-					temLimiteInferior = true;
-					menorValor = limitantes[i][j];
-					indiceColunaMenor = j;
+					limiteInferior = limitantes[i][j];
 
 				}
+				
+				// Se chegamos até o final, é porque achamos o valor e n foi dado continue
+				achou = true;
+				temLimiteInferior = true;
 			}
 		}
 		
-		cout << "linha " << i + 1 << " ";	
+		cout << "----------------------------------------" << std::endl;	
+		cout << limiteSuperior << " " << limiteInferior << std::endl;
+		getchar();	
+		cout << "linha " << i + 1 << " " << "Current: " << valoresIniciaisB[i] << " | ";	
 		if(temLimiteInferior)
 		{
-			cout << "Allowable decrease " << fixed << setprecision(4) << valoresIniciaisB[i] - menorValor << " | ";
+			cout << "Allowable decrease " << fixed << setprecision(4) << valoresIniciaisB[i] - limiteInferior << " | ";
 		}
 		else
 		{
@@ -1063,15 +1084,12 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 
 		if(temLimiteSuperior)
 		{
-			cout << "Allowable increase " << fixed << setprecision(4) << maiorValor - valoresIniciaisB[i] << std::endl;
+			cout << "Allowable increase " << fixed << setprecision(4) << limiteSuperior - valoresIniciaisB[i] << std::endl;
 		}
 		else
 		{
 			cout << "Allowable increase Infinity" << std::endl;
 		}
-		// Mudar dps
-		indiceColunaMaior = 0;
-		indiceColunaMenor = 0;	
 	}
 }
 
@@ -1243,7 +1261,7 @@ int main()
 		limitantesRestricoes.push_back(limitantesRestricoesTemporarias); // Adiciona o vetor a limitantesRestricoes
 		linhaRequeridaRange++;	
 	}
-	
+	cout << "-------------------------------------------------------------" << std::endl;
 	for(int i = 0; i < limitantes.size(); i++)
 	{
 		for(int j = 0; j < limitantes[i].size(); j++)

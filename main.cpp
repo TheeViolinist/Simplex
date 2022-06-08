@@ -1004,6 +1004,8 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 	bool temLimiteSuperior = false;
 	bool primeiraVariavelSuperior;
 	bool primeiraVariavelInferior;
+
+	bool limiteInferiorPositivo;
 	
 	for(int i = 0; i < limitantes.size(); i++)
 	{
@@ -1013,7 +1015,7 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 		temLimiteInferior = false;
 		primeiraVariavelSuperior = false;
 		primeiraVariavelInferior = false;
-
+		limiteInferiorPositivo = false;
 		for(int j = 0; j < limitantes[i].size(); j++)
 		{
 
@@ -1030,12 +1032,15 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 					limiteSuperior = limitantes[i][j];
 					primeiraVariavelSuperior = true;
 				}
-
-				else if(limitantes[i][j] <= limiteSuperior)
-				{
-					limiteSuperior = limitantes[i][j];
+				else
+				{	// Caso tenhamos o limite 2 4 -2 e -3 para <= vamos de fato pegar o menor valor
+					if(limitantes[i][j] <= limiteSuperior)
+					{
+						limiteSuperior = limitantes[i][j];
+					}
+						
+						
 				}
-
 
 				temLimiteSuperior = true;
 			}
@@ -1056,11 +1061,25 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 					limiteInferior = limitantes[i][j];
 					primeiraVariavelInferior = true;
 				}
+				
+				if(limitantes[i][j] < 0 && !limiteInferiorPositivo)
+				{	
+					//Caso eu tenha -6 e -12 como limitantesInferior eu tenho que ter -6 como o limitante inferior e não -12
+			 		if(abs(limitantes[i][j]) <= limiteInferior)
+					{
+						limiteInferior = limitantes[i][j];
 
-				else if(abs(limitantes[i][j]) <= limiteInferior)
+					}
+				}
+				else if(limitantes[i][j] > 0)
 				{
-					limiteInferior = limitantes[i][j];
-
+					// Caso ele seja um numero > 0, exemplo, >= 6 e >= 12, vamos ter que pegar o maior valor
+					// Caso ele entre aqui, ele será maior que todo valor negativo, então n deve mais entrar no if anterior
+					if(limitantes[i][j] >= limiteInferior)
+					{
+						limiteInferior = limitantes[i][j];
+					}		
+					limiteInferiorPositivo = true;
 				}
 				
 				// Se chegamos até o final, é porque achamos o valor e n foi dado continue

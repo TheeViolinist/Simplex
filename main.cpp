@@ -364,15 +364,15 @@ int retornaLinhaPivo(vector < double > &coeficientesB, vector < vector <double> 
 
 	// Inicia a primeira divisao como o menor valor
 	double menorValor = coeficientesB[0] / coeficientesRestricoes[0][indiceColunaPivo];
-	
+	int tentativas = 0;
+
 	// Caso, o menor valor inicial seja menor do que zero, inicia ele como infinito positivo
 	if(menorValor < 0)
 	{
 		menorValor = DBL_MAX;
+		tentativas++; // e realiza que ja fizemos uma tentativa
 	}	
-	
 	double divisao;
-	int tentativas = 1;
 	
 	// inicializa a linha pivo com o primeiro valor
 	int linhaPivo = 0;
@@ -394,14 +394,16 @@ int retornaLinhaPivo(vector < double > &coeficientesB, vector < vector <double> 
 				linhaPivo = i;
 			}
 		}
+		// Caso o numero seja negativo, fazemos tentativas++
 		else
 		{
-
 			tentativas++;
 			continue;
 		}
 		
 	}
+	//se chegar nesse ponto, é porque todos os valores são negativos e ainda tem como aumentar a solução objetiva, mas os valores não podem entrar na base
+	//Assim o sistema não tem solução
 	if(tentativas == coeficientesB.size())
 	{
 	
@@ -609,7 +611,7 @@ void removeArtificiais(vector <double> &coeficientesFuncao, vector < vector <dou
 
 
 // ALgoritmo do método Simplex
-void Simplex(vector < double > &coeficientesDaFuncao, vector< vector<double> > &coeficientesRestricoes, vector < double > &coeficientesB, vector <double> &coeficientesW, vector <int> &artificiaisColunas,
+int Simplex(vector < double > &coeficientesDaFuncao, vector< vector<double> > &coeficientesRestricoes, vector < double > &coeficientesB, vector <double> &coeficientesW, vector <int> &artificiaisColunas,
 bool &temArtificiais)
 {
 	int indiceColunaPivo; // Coluna pivo
@@ -637,7 +639,7 @@ bool &temArtificiais)
 			if(*menorValor >= 0 && coeficientesW[coeficientesW.size() - 1] != 0)
 			{
 				cout << "Sistema não tem solução" << endl;
-				break;
+				return false;
 			}
 		}
 		else
@@ -670,7 +672,7 @@ bool &temArtificiais)
 		if(indiceLinhaElementoPivo == -1)
 		{
 			cout << "Sistema sem solução." << endl;
-			break;
+			return false;
 		}
 
 		cout << "A linha do elemento Pivo vale: " << indiceLinhaElementoPivo << endl;
@@ -708,7 +710,8 @@ bool &temArtificiais)
 		
 
 	}
-
+	
+	return true;
 }
 
 
@@ -999,23 +1002,19 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 {
 	double limiteInferior;
 	double limiteSuperior;
-	bool achou;
 	bool temLimiteInferior = false;
 	bool temLimiteSuperior = false;
 	bool primeiraVariavelSuperior;
 	bool primeiraVariavelInferior;
-
-	bool limiteInferiorPositivo;
 	
 	for(int i = 0; i < limitantes.size(); i++)
 	{
 
-		achou = false;
 		temLimiteSuperior = false;
 		temLimiteInferior = false;
 		primeiraVariavelSuperior = false;
 		primeiraVariavelInferior = false;
-		limiteInferiorPositivo = false;
+
 		for(int j = 0; j < limitantes[i].size(); j++)
 		{
 
@@ -1047,43 +1046,23 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 			// A restrição daquela variável é de >=, ou seja, é um limitante inferior
 			else
 			{	
-
-			
-				// é necessário fazer isso, pois caso eu tenha um valor um limite inferior diferente de zero e depois tenha outro valor igual a zero, para
-				// nao entrar no outro if
-				if(achou && limitantes[i][j] == 0)
-				{
-					continue;
-				}
-
+	
 				if(!primeiraVariavelInferior) {
 
 					limiteInferior = limitantes[i][j];
 					primeiraVariavelInferior = true;
 				}
-				
-				if(limitantes[i][j] < 0 && !limiteInferiorPositivo)
-				{	
-					//Caso eu tenha -6 e -12 como limitantesInferior eu tenho que ter -6 como o limitante inferior e não -12
-			 		if(abs(limitantes[i][j]) <= limiteInferior)
+				else
+				{
+					// Temos que pegar o maior valor, se temos o vetor 4 3 2, todos de restrição >= temos que pegar então o maior valor
+					if(limitantes[i][j] >= 0)
 					{
-						limiteInferior = limitantes[i][j];
-
+						if(limitantes[i][j] >= limiteInferior) {
+							
+							limiteInferior = limitantes[i][j];
+						}
 					}
 				}
-				else if(limitantes[i][j] > 0)
-				{
-					// Caso ele seja um numero > 0, exemplo, >= 6 e >= 12, vamos ter que pegar o maior valor
-					// Caso ele entre aqui, ele será maior que todo valor negativo, então n deve mais entrar no if anterior
-					if(limitantes[i][j] >= limiteInferior)
-					{
-						limiteInferior = limitantes[i][j];
-					}		
-					limiteInferiorPositivo = true;
-				}
-				
-				// Se chegamos até o final, é porque achamos o valor e n foi dado continue
-				achou = true;
 				temLimiteInferior = true;
 			}
 		}
@@ -1185,8 +1164,14 @@ int main()
 		criaVetorW(coeficientesW, coeficientesRestricoes, artificiaisIndices, artificiaisColunas, coeficientesB); // Vetor W referente aos custos das variaveis artificiais, o qual devemos zerar
 
 	}
+	
+	bool sistemaSolucionavel;
+	sistemaSolucionavel = Simplex(coeficientesDaFuncao, coeficientesRestricoes, coeficientesB, coeficientesW, artificiaisColunas, possuiArtificial);
+	
+	if(!sistemaSolucionavel) {
+		return 0;
+	}
 
-	Simplex(coeficientesDaFuncao, coeficientesRestricoes, coeficientesB, coeficientesW, artificiaisColunas, possuiArtificial);
 	if(ehMinimizacao)
 	{
 		coeficientesDaFuncao[coeficientesDaFuncao.size() - 1] *= -1;
@@ -1215,16 +1200,7 @@ int main()
 	// CoeficientesDaFuncao.size() indica a quantia de coluna
 	armazenaBaseInversa(coeficientesInversoBase, coeficientesRestricoes, coeficientesB.size(), coeficientesDaFuncao.size());
 	
-	/*
-	for(int i = 0; i < coeficientesInversoBase.size(); i++)
-	{
-		for(int j = 0; j < coeficientesInversoBase[i].size(); j++)
-		{
-			cout << coeficientesInversoBase[i][j] << " ";
-		}
-		cout << endl;
-	}
-	*/ // Lembrar que coeficientesInversoBase.size() representa o numero de linhas da matriz
+	// Lembrar que coeficientesInversoBase.size() representa o numero de linhas da matriz
 	
 	// Para saber os range precisa-se do vetor b final e a matriz inversa de B 
 	

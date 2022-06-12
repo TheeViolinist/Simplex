@@ -508,7 +508,7 @@ void printaTableau(vector <double> &coeficientesDaFuncao, vector < vector <doubl
 	 
     for(int i = 0; i < coeficientesDaFuncao.size(); i++)
     {
-        cout << setw(10) << setprecision(2) << coeficientesDaFuncao[i] << " ";
+        cout << setw(10) << setprecision(5) << coeficientesDaFuncao[i] << " ";
     }
     cout << endl;
 	int k  = 0;
@@ -531,7 +531,37 @@ void printaTableau(vector <double> &coeficientesDaFuncao, vector < vector <doubl
 }
 
 
+void printaTableauVetorW(vector <double> &coeficientesDaFuncao, vector < vector <double> > &coeficientesRestricoes, vector <double> &coeficientesB, vector < double > coeficientesW)
+{
 
+    for(int i = 0; i < coeficientesDaFuncao.size(); i++)
+    {
+        cout << setw(10) << setprecision(5) << coeficientesDaFuncao[i] << " ";
+    }
+    cout << endl;
+	int k  = 0;
+    for(vector <double > &linha : coeficientesRestricoes)
+    {
+        for( double  &valor : linha )
+        {
+            cout << setw(10) <<  valor << " ";
+        }
+		cout <<  setw(10) << setprecision(5) << coeficientesB[k];
+		k++;
+        cout << endl;
+
+    }
+	for(int i  =0; i < coeficientesW.size(); i++)
+	{
+		cout << setw(10) << setprecision(5) << coeficientesW[i] << " ";
+	}
+	cout << endl;
+
+    cout << "------------------------------------------------------------------------------------------------" << endl;
+    
+	getchar();
+
+}
 
 /****
  * CriaVetorW: função responsável por criar o vetor W que queremos minimizar no método duas fases
@@ -555,10 +585,8 @@ void criaVetorW(vector < double > &coeficientesW, const vector <vector <double >
 		{
 			//somamos as linhas que possuem variavel artificial e então soma-se os valores e coloca em w com sinal oposto	
 			coeficientesW[i] += coeficientesRestricoes[indiceArtificial][i] * -1; 
-			cout << coeficientesW[i] << " ";	
 				
 		}
-		cout << endl;
 		// coloca no ultimo valor de W os valores de B, o qual iremos minimizar
 		coeficientesW[coeficientesW.size() - 1] += coeficientesB[indiceArtificial] * -1;
 		
@@ -571,7 +599,6 @@ void criaVetorW(vector < double > &coeficientesW, const vector <vector <double >
 		coeficientesW[indice] = 0;
 	}
 	
-
 }
 
 
@@ -703,8 +730,10 @@ bool &temArtificiais)
 		{
 			// ajeita o vetor de W
 			retornaNovoVetorCoeficientesFuncao(coeficientesW, coeficientesRestricoes[indiceLinhaElementoPivo], coeficientesB[indiceLinhaElementoPivo], indiceColunaPivo);
+			printaTableauVetorW(coeficientesDaFuncao, coeficientesRestricoes, coeficientesB, coeficientesW);
+			continue;
 		}
-
+		
 		printaTableau(coeficientesDaFuncao, coeficientesRestricoes, coeficientesB);			
 
 		
@@ -1152,7 +1181,6 @@ int main()
 	// Transforma o problema no modelo standart
 	transformaProblemaPadraoPL(coeficientesDaFuncao, coeficientesRestricoes, relacoesRestricoes, coeficientesB, artificiaisIndices, artificiaisColunas, possuiArtificial);
 
-	printaTableau(coeficientesDaFuncao, coeficientesRestricoes, coeficientesB);// Printa o problema na forma padrão
 	
 	vector < double > coeficientesW; // Coeficientes do vetor auxiliar de W
 	
@@ -1162,16 +1190,24 @@ int main()
 	{
 		
 		criaVetorW(coeficientesW, coeficientesRestricoes, artificiaisIndices, artificiaisColunas, coeficientesB); // Vetor W referente aos custos das variaveis artificiais, o qual devemos zerar
+		printaTableauVetorW(coeficientesDaFuncao, coeficientesRestricoes, coeficientesB, coeficientesW);
+	
+	}
 
+	else {
+		
+		printaTableau(coeficientesDaFuncao, coeficientesRestricoes, coeficientesB);// Printa o problema na forma padrão
 	}
 	
 	bool sistemaSolucionavel;
 	sistemaSolucionavel = Simplex(coeficientesDaFuncao, coeficientesRestricoes, coeficientesB, coeficientesW, artificiaisColunas, possuiArtificial);
-	
+		
+
 	if(!sistemaSolucionavel) {
 		return 0;
 	}
-
+	
+	printaTableau(coeficientesDaFuncao, coeficientesRestricoes, coeficientesB); // Printa ultimo tablueau
 	if(ehMinimizacao)
 	{
 		coeficientesDaFuncao[coeficientesDaFuncao.size() - 1] *= -1;
@@ -1194,6 +1230,13 @@ int main()
 		cout << precosSombra[i] << " ";
 	}
 	cout << endl;
+
+	cout << "Solucao Dual: " << std::endl;
+	for(int i = 0; i < precosSombra.size(); i++) {
+		cout << precosSombra[i] << " ";
+	}
+	cout << endl;
+
 	vector < vector < double >  > coeficientesInversoBase; // Coeficiencies que vamos utilizar para calcular o range do lado direiro;
 	
 	// CoeficientesB.size() indica a quantia de restrições

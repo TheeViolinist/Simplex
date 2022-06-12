@@ -755,6 +755,10 @@ void solucaoFinal(vector <int> &indiceSolucoes, vector < vector < double > > &co
 	// i é o valor da coluna
 	for(int i = 0; i < coeficientesFuncao.size(); i++)
 	{
+		// Aquela coluna só será solução caso ela seja igual a zero na coluna
+		if(coeficientesFuncao[i] != 0) {
+			continue;
+		}
 		// J é o valor da linha
 		for( j = 0; j < coeficientesB.size(); j++)
 		{

@@ -1053,6 +1053,8 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 
 			if(limitantes[i][j] == INFINITY)
 			{
+
+				cout << "oi" << std::endl;
 				continue;
 			}
 

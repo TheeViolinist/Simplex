@@ -1050,11 +1050,11 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 
 		for(int j = 0; j < limitantes[i].size(); j++)
 		{
+			
 
 			if(limitantes[i][j] == INFINITY)
 			{
 
-				cout << "oi" << std::endl;
 				continue;
 			}
 
@@ -1099,12 +1099,13 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 					}
 				}
 				temLimiteInferior = true;
+				cout << "limite inferior: " << limiteInferior << std::endl;
 			}
 		}
 		
 		cout << "----------------------------------------" << std::endl;	
-		cout << limiteSuperior << " " << limiteInferior << std::endl;
-		getchar();	
+		getchar();
+
 		cout << "linha " << i + 1 << " " << "Current: " << valoresIniciaisB[i] << " | ";	
 		if(temLimiteInferior)
 		{
@@ -1123,6 +1124,9 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 		{
 			cout << "Allowable increase Infinity" << std::endl;
 		}
+
+		cout << limiteSuperior << " " << limiteInferior << std::endl;
+
 	}
 }
 
@@ -1249,8 +1253,14 @@ int main()
 	// CoeficientesDaFuncao.size() indica a quantia de coluna
 	armazenaBaseInversa(coeficientesInversoBase, coeficientesRestricoes, coeficientesB.size(), coeficientesDaFuncao.size());
 	
+	cout << "Base inversa" << endl;
 	// Lembrar que coeficientesInversoBase.size() representa o numero de linhas da matriz
-	
+	for(int i = 0; i < coeficientesInversoBase.size(); i++) {
+		for(int j = 0; j < coeficientesInversoBase[i].size(); j++) {
+			cout << coeficientesInversoBase[i][j] << " ";
+		}
+		cout << endl;
+	}	
 	// Para saber os range precisa-se do vetor b final e a matriz inversa de B 
 	
 	int linhaRequeridaRange = 0; // Variável que se refere a linha da restrição que estamos calculando o range de b

@@ -1099,7 +1099,6 @@ void printaRangesLadoDireito(const vector < vector < double > > &limitantes, con
 					}
 				}
 				temLimiteInferior = true;
-				cout << "limite inferior: " << limiteInferior << std::endl;
 			}
 		}
 		
@@ -1305,7 +1304,7 @@ int main()
 			{
 				limitantesRestricoesTemporarias.push_back(1);
 			}
-			else
+			else if(coeficientesInversoBase[i][linhaRequeridaRange] > 0)
 			{
 				limitantesRestricoesTemporarias.push_back(2);
 			}
